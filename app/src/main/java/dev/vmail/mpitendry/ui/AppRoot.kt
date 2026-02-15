@@ -3,7 +3,7 @@ package dev.vmail.mpitendry.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.PeopleAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.vmail.mpitendry.ui.screens.MusiciansScreen
 import dev.vmail.mpitendry.ui.screens.PlanningScreen
@@ -22,12 +23,12 @@ import dev.vmail.mpitendry.ui.screens.SettingsScreen
 @Composable
 fun AppRoot() {
     val navController = rememberNavController()
+    val backStackEntry = navController.currentBackStackEntryAsState()
+    val route = backStackEntry.value?.destination?.route
 
     Scaffold(
         bottomBar = {
             NavigationBar {
-                val route = navController.currentBackStackEntry?.destination?.route
-
                 NavigationBarItem(
                     selected = route == "planning",
                     onClick = {
@@ -48,7 +49,7 @@ fun AppRoot() {
                             launchSingleTop = true
                         }
                     },
-                    icon = { Icon(Icons.Filled.People, contentDescription = "Mpitendry") },
+                    icon = { Icon(Icons.Filled.PeopleAlt, contentDescription = "Mpitendry") },
                     label = { Text("Mpitendry") }
                 )
 
@@ -66,15 +67,8 @@ fun AppRoot() {
             }
         }
     ) { paddingValues ->
-
         NavHost(
             navController = navController,
             startDestination = "planning",
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable("planning") { PlanningScreen() }
-            composable("musicians") { MusiciansScreen() }
-            composable("settings") { SettingsScreen() }
-        }
-    }
-}
