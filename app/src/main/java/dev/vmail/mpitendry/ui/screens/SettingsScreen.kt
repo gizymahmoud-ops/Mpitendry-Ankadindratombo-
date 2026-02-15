@@ -4,8 +4,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -16,23 +27,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.Charset
 
 @Composable
-fun SettingsScreen(vm: AppVm = viewModel()) {
+fun SettingsScreen() {
 
+    val vm: AppVm = viewModel()
     val st by vm.state.collectAsState()
     val scope = rememberCoroutineScope()
 
     var url by remember {
-        mutableStateOf(
-            // 🔁 Remplace par TON lien RAW GitHub vers planning.json
-            "https://raw.githubusercontent.com/TON_COMPTE/TON_REPO/main/planning.json"
-        )
+        mutableStateOf("https://raw.githubusercontent.com/TON_COMPTE/TON_REPO/main/planning.json")
     }
 
     var status by remember { mutableStateOf("Tsy mbola nanao mise à jour.") }
@@ -108,42 +116,35 @@ private suspend fun applyPlanningJson(
     val root = JSONObject(jsonText)
     val plans = root.getJSONArray("plans")
 
-    // helper: trouver musicianId par nom (ignore case + trim)
     fun findIdByName(name: String): Long? {
         val n = name.trim()
         return musicians.firstOrNull { it.name.trim().equals(n, ignoreCase = true) }?.id
     }
 
-    // On applique ligne par ligne
     for (i in 0 until plans.length()) {
         val item = plans.getJSONObject(i)
 
         val dateIso = item.getString("dateIso")
-        val slotStr = item.getString("slot") // "MATIN" ou "SOIR"
+        val slotStr = item.getString("slot")
         val slot = ServiceSlot.valueOf(slotStr)
 
-        // change date sélectionnée pour que tes fonctions existantes utilisent la bonne date
         vm.setDateIso(dateIso)
-        delay(10) // petite pause pour laisser l'état se mettre à jour
+        delay(10)
 
-        // on efface le slot puis on remplit
         vm.clearSlot(slot)
 
-        // clavier
         val nClavier = item.optString("clavier", "").trim()
         if (nClavier.isNotEmpty()) {
             val id = findIdByName(nClavier)
             if (id != null) vm.setAssignment(slot, Instrument.CLAVIER, id) else missing.add(nClavier)
         }
 
-        // guitar bass
         val nBass = item.optString("guitarBass", "").trim()
         if (nBass.isNotEmpty()) {
             val id = findIdByName(nBass)
             if (id != null) vm.setAssignment(slot, Instrument.GUITAR_BASS, id) else missing.add(nBass)
         }
 
-        // batterie
         val nBat = item.optString("batterie", "").trim()
         if (nBat.isNotEmpty()) {
             val id = findIdByName(nBat)
@@ -153,7 +154,7 @@ private suspend fun applyPlanningJson(
         updatedDates += 1
     }
 
-    return ApplyResult(updatedDates = updatedDates, missingNames = missing.toList())
+    return ApplyResult(updatedDates, missing.toList())
 }
 
 private fun downloadText(url: String): String {
