@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.vmail.mpitendry.data.Instrument
 import dev.vmail.mpitendry.data.ServiceSlot
+import dev.vmail.mpitendry.ui.AdminPrefs
 import dev.vmail.mpitendry.ui.AppVm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -26,6 +28,7 @@ fun SettingsScreen(vm: AppVm = viewModel()) {
 
     val st by vm.state.collectAsState()
     val scope = rememberCoroutineScope()
+    val ctx = LocalContext.current
 
     var urlInput by remember {
         mutableStateOf("https://raw.githubusercontent.com/gizymahmoud-ops/Mpitendry-Ankadindratombo-/main/planning.json")
@@ -33,6 +36,10 @@ fun SettingsScreen(vm: AppVm = viewModel()) {
 
     var status by remember { mutableStateOf("Tsy mbola nanao mise à jour.") }
     var loading by remember { mutableStateOf(false) }
+
+    // Admin
+    var adminCode by remember { mutableStateOf("") }
+    var isAdmin by remember { mutableStateOf(AdminPrefs.isAdmin(ctx)) }
 
     Column(
         modifier = Modifier.padding(16.dp),
@@ -45,7 +52,7 @@ fun SettingsScreen(vm: AppVm = viewModel()) {
             onValueChange = { urlInput = it },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            label = { Text("Lien planning.json (GitHub ou RAW)") }
+            label = { Text("Lien planning.json") }
         )
 
         Button(
@@ -77,11 +84,46 @@ fun SettingsScreen(vm: AppVm = viewModel()) {
                     }
                 }
             }
-        ) {
-            Text(if (loading) "Mise à jour..." else "Mettre à jour")
-        }
+        ) { Text(if (loading) "Mise à jour..." else "Mettre à jour") }
 
         AssistChip(onClick = {}, label = { Text(status) })
+
+        Divider()
+
+        Text("Admin", style = MaterialTheme.typography.titleMedium)
+
+        OutlinedTextField(
+            value = adminCode,
+            onValueChange = { adminCode = it },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text("Code Admin") }
+        )
+
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                // ✅ Change ce code comme tu veux
+                if (adminCode.trim() == "IANTSADMIN") {
+                    AdminPrefs.setAdmin(ctx, true)
+                    isAdmin = true
+                    status = "✅ Mode admin activé"
+                } else {
+                    status = "❌ Code admin diso"
+                }
+            }
+        ) { Text("Activer Admin") }
+
+        if (isAdmin) {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    AdminPrefs.setAdmin(ctx, false)
+                    isAdmin = false
+                    status = "Mode admin désactivé"
+                }
+            ) { Text("Désactiver Admin") }
+        }
 
         Divider()
 
@@ -90,52 +132,27 @@ fun SettingsScreen(vm: AppVm = viewModel()) {
     }
 }
 
-/**
- * ✅ Accepte:
- * - https://github.com/.../blob/main/planning.json
- * - https://raw.githubusercontent.com/.../main/planning.json
- * - https://raw.githubusercontent.com/.../refs/heads/main/planning.json
- * - github.com/... (sans https)
- * - raw.githubusercontent.com/... (sans https)
- *
- * Et retourne toujours un vrai lien RAW téléchargeable.
- */
 private fun normalizeGithubUrl(input: String): String {
-    var s = input.trim()
-
-    // enlève guillemets si l'utilisateur colle "..."
-    s = s.removePrefix("\"").removeSuffix("\"").trim()
-
-    // si l'utilisateur colle sans https
+    var s = input.trim().removePrefix("\"").removeSuffix("\"").trim()
     if (s.startsWith("github.com/")) s = "https://$s"
     if (s.startsWith("raw.githubusercontent.com/")) s = "https://$s"
-    if (!s.startsWith("http://") && !s.startsWith("https://")) {
-        s = "https://$s"
-    }
+    if (!s.startsWith("http://") && !s.startsWith("https://")) s = "https://$s"
 
-    // Convertit github blob -> raw
     if (s.contains("github.com/") && s.contains("/blob/")) {
         s = s.replace("https://github.com/", "https://raw.githubusercontent.com/")
         s = s.replace("/blob/", "/")
     }
-
-    // Corrige raw avec refs/heads
     s = s.replace("/refs/heads/", "/")
-
     return s
 }
 
-private data class ApplyResult(
-    val updatedDates: Int,
-    val missingNames: List<String>
-)
+private data class ApplyResult(val updatedDates: Int, val missingNames: List<String>)
 
 private suspend fun applyPlanningJson(
     vm: AppVm,
     musicians: List<dev.vmail.mpitendry.data.Musician>,
     jsonText: String
 ): ApplyResult {
-
     val missing = linkedSetOf<String>()
     var updatedDates = 0
 
@@ -149,37 +166,36 @@ private suspend fun applyPlanningJson(
 
     for (i in 0 until plans.length()) {
         val item = plans.getJSONObject(i)
-
         val dateIso = item.getString("dateIso")
         val slot = ServiceSlot.valueOf(item.getString("slot"))
 
         vm.setDateIso(dateIso)
-        delay(10)
+        delay(20)
 
         vm.clearSlot(slot)
 
-        val nClavier = item.optString("clavier", "").trim()
-        if (nClavier.isNotEmpty()) {
-            val id = findIdByName(nClavier)
-            if (id != null) vm.setAssignment(slot, Instrument.CLAVIER, id) else missing.add(nClavier)
+        val clavier = item.optString("clavier", "").trim()
+        if (clavier.isNotEmpty()) {
+            val id = findIdByName(clavier)
+            if (id != null) vm.setAssignment(slot, Instrument.CLAVIER, id) else missing.add(clavier)
         }
 
-        val nBass = item.optString("guitarBass", "").trim()
-        if (nBass.isNotEmpty()) {
-            val id = findIdByName(nBass)
-            if (id != null) vm.setAssignment(slot, Instrument.GUITAR_BASS, id) else missing.add(nBass)
+        val bass = item.optString("guitarBass", "").trim()
+        if (bass.isNotEmpty()) {
+            val id = findIdByName(bass)
+            if (id != null) vm.setAssignment(slot, Instrument.GUITAR_BASS, id) else missing.add(bass)
         }
 
-        val nBat = item.optString("batterie", "").trim()
-        if (nBat.isNotEmpty()) {
-            val id = findIdByName(nBat)
-            if (id != null) vm.setAssignment(slot, Instrument.BATTERIE, id) else missing.add(nBat)
+        val bat = item.optString("batterie", "").trim()
+        if (bat.isNotEmpty()) {
+            val id = findIdByName(bat)
+            if (id != null) vm.setAssignment(slot, Instrument.BATTERIE, id) else missing.add(bat)
         }
 
-        updatedDates += 1
+        updatedDates++
     }
 
-    return ApplyResult(updatedDates = updatedDates, missingNames = missing.toList())
+    return ApplyResult(updatedDates, missing.toList())
 }
 
 private fun downloadText(url: String): String {
@@ -189,11 +205,7 @@ private fun downloadText(url: String): String {
         requestMethod = "GET"
     }
     conn.connect()
-
-    if (conn.responseCode !in 200..299) {
-        throw IllegalStateException("HTTP ${conn.responseCode}")
-    }
-
+    if (conn.responseCode !in 200..299) throw IllegalStateException("HTTP ${conn.responseCode}")
     val bytes = conn.inputStream.use { it.readBytes() }
     return bytes.toString(Charset.forName("UTF-8"))
 }
