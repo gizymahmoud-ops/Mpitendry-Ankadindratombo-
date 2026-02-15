@@ -3,80 +3,83 @@ package dev.vmail.mpitendry.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.graphics.Color
+import androidx.navigation.compose.*
 import dev.vmail.mpitendry.ui.screens.MusiciansScreen
 import dev.vmail.mpitendry.ui.screens.PlanningScreen
 import dev.vmail.mpitendry.ui.screens.SettingsScreen
 
 @Composable
 fun AppRoot() {
-    val navController = rememberNavController()
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val route = backStackEntry?.destination?.route
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
+    val darkColors = darkColorScheme(
+        primary = Color(0xFF4F8CFF),
+        secondary = Color(0xFF00C2A8),
+        background = Color(0xFF0F172A),
+        surface = Color(0xFF1E293B),
+        onPrimary = Color.White,
+        onBackground = Color(0xFFE2E8F0),
+        onSurface = Color(0xFFE2E8F0)
+    )
 
-                NavigationBarItem(
-                    selected = route == "planning",
-                    onClick = {
-                        navController.navigate("planning") {
-                            popUpTo("planning") { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    },
-                    icon = { Icon(Icons.Filled.DateRange, contentDescription = "Planning") },
-                    label = { Text("Planning") }
-                )
+    MaterialTheme(
+        colorScheme = darkColors
+    ) {
 
-                NavigationBarItem(
-                    selected = route == "musicians",
-                    onClick = {
-                        navController.navigate("musicians") {
-                            popUpTo("planning") { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    },
-                    icon = { Icon(Icons.Outlined.Person, contentDescription = "Mpitendry") },
-                    label = { Text("Mpitendry") }
-                )
+        val navController = rememberNavController()
+        val currentRoute by navController.currentBackStackEntryAsState()
 
-                NavigationBarItem(
-                    selected = route == "settings",
-                    onClick = {
-                        navController.navigate("settings") {
-                            popUpTo("planning") { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    },
-                    icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
-                    label = { Text("Settings") }
-                )
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+            bottomBar = {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ) {
+                    NavigationBarItem(
+                        selected = currentRoute?.destination?.route == "planning",
+                        onClick = { navController.navigate("planning") },
+                        icon = {
+                            Icon(Icons.Default.DateRange, contentDescription = null)
+                        },
+                        label = { Text("Planning") }
+                    )
+
+                    NavigationBarItem(
+                        selected = currentRoute?.destination?.route == "musicians",
+                        onClick = { navController.navigate("musicians") },
+                        icon = {
+                            Icon(Icons.Default.People, contentDescription = null)
+                        },
+                        label = { Text("Mpitendry") }
+                    )
+
+                    NavigationBarItem(
+                        selected = currentRoute?.destination?.route == "settings",
+                        onClick = { navController.navigate("settings") },
+                        icon = {
+                            Icon(Icons.Default.Settings, contentDescription = null)
+                        },
+                        label = { Text("Settings") }
+                    )
+                }
             }
-        }
-    ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = "planning",
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable("planning") { PlanningScreen() }
-            composable("musicians") { MusiciansScreen() }
-            composable("settings") { SettingsScreen() }
+        ) { padding ->
+
+            NavHost(
+                navController = navController,
+                startDestination = "planning",
+                modifier = Modifier.padding(padding)
+            ) {
+                composable("planning") { PlanningScreen() }
+                composable("musicians") { MusiciansScreen() }
+                composable("settings") { SettingsScreen() }
+            }
         }
     }
 }
