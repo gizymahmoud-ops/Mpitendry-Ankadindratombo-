@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "month": "2026-01",
+  "generatedAt": "2026-02-15T10:00:00",
+  "plans": [
+    {
+      "dateIso": "2026-01-05",
+      "slot": "MATIN",
+      "clavier": "Rakoto",
+      "guitarBass": "Paoly",
+      "batterie": "Jean"
+    },
+    {
+      "dateIso": "2026-01-05",
+      "slot": "SOIR",
+      "clavier": "Lita",
+      "guitarBass": "Paoly",
+      "batterie": "Hery"
+    }
+  ]
+}
