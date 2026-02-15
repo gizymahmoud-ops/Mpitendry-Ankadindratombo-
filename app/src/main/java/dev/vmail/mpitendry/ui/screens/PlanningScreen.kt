@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -82,9 +82,7 @@ fun PlanningScreen(vm: AppVm = viewModel()) {
                     slot = ServiceSlot.MATIN,
                     assignments = morningMap,
                     vm = vm,
-                    onCopied = {
-                        snackbar.showSnackbar("Nadika ao amin'ny clipboard ✅")
-                    }
+                    onCopied = { snackbar.showSnackbar("Nadika ao amin'ny clipboard ✅") }
                 )
             }
 
@@ -94,9 +92,7 @@ fun PlanningScreen(vm: AppVm = viewModel()) {
                     slot = ServiceSlot.SOIR,
                     assignments = eveningMap,
                     vm = vm,
-                    onCopied = {
-                        snackbar.showSnackbar("Nadika ao amin'ny clipboard ✅")
-                    }
+                    onCopied = { snackbar.showSnackbar("Nadika ao amin'ny clipboard ✅") }
                 )
             }
 
@@ -137,10 +133,9 @@ private fun ServiceCardPro(
     slot: ServiceSlot,
     assignments: Map<Instrument, Long>,
     vm: AppVm,
-    onCopied: suspend () -> Unit
+    onCopied: (String) -> Unit
 ) {
     val st by vm.state.collectAsState()
-    val scope = rememberCoroutineScope()
 
     ElevatedCard(
         shape = RoundedCornerShape(18.dp)
@@ -201,7 +196,7 @@ private fun ServiceCardPro(
                     val ctx = androidx.compose.ui.platform.LocalContext.current
                     val clip = ClipData.newPlainText("planning", shareText)
                     (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(clip)
-                    scope.launch { onCopied() }
+                    onCopied(shareText)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(vertical = 14.dp),
