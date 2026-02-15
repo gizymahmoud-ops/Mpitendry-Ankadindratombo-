@@ -3,7 +3,7 @@ package dev.vmail.mpitendry.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.PeopleAlt
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -55,7 +55,7 @@ fun AppRoot() {
                         }
                     },
                     icon = {
-                        Icon(Icons.Filled.PeopleAlt, contentDescription = "Mpitendry")
+                        Icon(Icons.Filled.People, contentDescription = "Mpitendry")
                     },
                     label = { Text("Mpitendry") }
                 )
