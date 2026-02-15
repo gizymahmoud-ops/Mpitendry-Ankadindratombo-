@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package dev.vmail.mpitendry.ui.screens
 
 import android.content.ClipData
@@ -29,8 +31,15 @@ fun PlanningScreen(vm: AppVm = viewModel()) {
         eveningList.associate { Instrument.valueOf(it.instrument) to it.musicianId }
     }
 
-    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text("Mpitendry Ankadindratombo", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+    Column(
+        Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        Text(
+            "Mpitendry Ankadindratombo",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold
+        )
 
         OutlinedTextField(
             value = st.selectedDateIso,
@@ -66,8 +75,15 @@ private fun ServiceCard(
     val st by vm.state.collectAsState()
 
     Card {
-        Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Column(
+            Modifier.fillMaxWidth().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { vm.autoFill(slot) }) { Text("Fenoy ho azy") }
@@ -87,7 +103,8 @@ private fun ServiceCard(
             OutlinedButton(onClick = {
                 val ctx = androidx.compose.ui.platform.LocalContext.current
                 val clip = ClipData.newPlainText("planning", shareText)
-                (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(clip)
+                (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                    .setPrimaryClip(clip)
             }) { Text("Adika ho WhatsApp") }
         }
     }
@@ -106,7 +123,10 @@ private fun AssignmentRow(
 
         val selectedName = musicians.firstOrNull { it.id == selectedId }?.name ?: "Safidio…"
 
-        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
             OutlinedTextField(
                 value = selectedName,
                 onValueChange = {},
@@ -114,7 +134,10 @@ private fun AssignmentRow(
                 label = { Text("Mpitendry") },
                 modifier = Modifier.menuAnchor().fillMaxWidth()
             )
-            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
                 musicians.forEach { m ->
                     DropdownMenuItem(
                         text = { Text(m.name) },
