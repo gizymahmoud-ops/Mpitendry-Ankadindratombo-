@@ -3,8 +3,8 @@ package dev.vmail.mpitendry.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -23,7 +23,6 @@ import dev.vmail.mpitendry.ui.screens.SettingsScreen
 
 @Composable
 fun AppRoot() {
-
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
@@ -36,13 +35,11 @@ fun AppRoot() {
                     selected = route == "planning",
                     onClick = {
                         navController.navigate("planning") {
-                            popUpTo("planning")
+                            popUpTo("planning") { inclusive = false }
                             launchSingleTop = true
                         }
                     },
-                    icon = {
-                        Icon(Icons.Filled.DateRange, contentDescription = "Planning")
-                    },
+                    icon = { Icon(Icons.Filled.DateRange, contentDescription = "Planning") },
                     label = { Text("Planning") }
                 )
 
@@ -50,13 +47,11 @@ fun AppRoot() {
                     selected = route == "musicians",
                     onClick = {
                         navController.navigate("musicians") {
-                            popUpTo("planning")
+                            popUpTo("planning") { inclusive = false }
                             launchSingleTop = true
                         }
                     },
-                    icon = {
-                        Icon(Icons.Filled.People, contentDescription = "Mpitendry")
-                    },
+                    icon = { Icon(Icons.Outlined.Person, contentDescription = "Mpitendry") },
                     label = { Text("Mpitendry") }
                 )
 
@@ -64,33 +59,24 @@ fun AppRoot() {
                     selected = route == "settings",
                     onClick = {
                         navController.navigate("settings") {
-                            popUpTo("planning")
+                            popUpTo("planning") { inclusive = false }
                             launchSingleTop = true
                         }
                     },
-                    icon = {
-                        Icon(Icons.Filled.Settings, contentDescription = "Settings")
-                    },
+                    icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
                     label = { Text("Settings") }
                 )
             }
         }
     ) { paddingValues ->
-
         NavHost(
             navController = navController,
             startDestination = "planning",
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable("planning") {
-                PlanningScreen()
-            }
-            composable("musicians") {
-                MusiciansScreen()
-            }
-            composable("settings") {
-                SettingsScreen()
-            }
+            composable("planning") { PlanningScreen() }
+            composable("musicians") { MusiciansScreen() }
+            composable("settings") { SettingsScreen() }
         }
     }
 }
