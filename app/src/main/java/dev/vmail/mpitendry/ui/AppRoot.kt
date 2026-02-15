@@ -1,19 +1,15 @@
 package dev.vmail.mpitendry.ui
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import dev.vmail.mpitendry.R
+import dev.vmail.mpitendry.ui.screens.AdminScreen
 import dev.vmail.mpitendry.ui.screens.MusiciansScreen
 import dev.vmail.mpitendry.ui.screens.PlanningScreen
 import dev.vmail.mpitendry.ui.screens.SettingsScreen
@@ -21,8 +17,11 @@ import dev.vmail.mpitendry.ui.screens.SettingsScreen
 @Composable
 fun AppRoot() {
     val navController = rememberNavController()
-    val backStack = navController.currentBackStackEntryAsState()
-    val route = backStack.value?.destination?.route
+    val backStack by navController.currentBackStackEntryAsState()
+    val route = backStack?.destination?.route
+
+    val ctx = LocalContext.current
+    val isAdmin = AdminPrefs.isAdmin(ctx)
 
     Scaffold(
         bottomBar = {
@@ -30,52 +29,31 @@ fun AppRoot() {
 
                 NavigationBarItem(
                     selected = route == "planning",
-                    onClick = {
-                        navController.navigate("planning") {
-                            popUpTo("planning") { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_calendar),
-                            contentDescription = "Planning"
-                        )
-                    },
+                    onClick = { navController.navigate("planning") { launchSingleTop = true } },
+                    icon = { Icon(painterResource(R.drawable.ic_calendar), null) },
                     label = { Text("Planning") }
                 )
 
-                NavigationBarItem(
-                    selected = route == "musicians",
-                    onClick = {
-                        navController.navigate("musicians") {
-                            popUpTo("planning") { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_people),
-                            contentDescription = "Mpitendry"
-                        )
-                    },
-                    label = { Text("Mpitendry") }
-                )
+                if (isAdmin) {
+                    NavigationBarItem(
+                        selected = route == "musicians",
+                        onClick = { navController.navigate("musicians") { launchSingleTop = true } },
+                        icon = { Icon(painterResource(R.drawable.ic_people), null) },
+                        label = { Text("Mpitendry") }
+                    )
+
+                    NavigationBarItem(
+                        selected = route == "admin",
+                        onClick = { navController.navigate("admin") { launchSingleTop = true } },
+                        icon = { Icon(painterResource(R.drawable.ic_settings), null) },
+                        label = { Text("Admin") }
+                    )
+                }
 
                 NavigationBarItem(
                     selected = route == "settings",
-                    onClick = {
-                        navController.navigate("settings") {
-                            popUpTo("planning") { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_settings),
-                            contentDescription = "Settings"
-                        )
-                    },
+                    onClick = { navController.navigate("settings") { launchSingleTop = true } },
+                    icon = { Icon(painterResource(R.drawable.ic_settings), null) },
                     label = { Text("Settings") }
                 )
             }
@@ -89,6 +67,7 @@ fun AppRoot() {
         ) {
             composable("planning") { PlanningScreen() }
             composable("musicians") { MusiciansScreen() }
+            composable("admin") { AdminScreen() }
             composable("settings") { SettingsScreen() }
         }
     }
