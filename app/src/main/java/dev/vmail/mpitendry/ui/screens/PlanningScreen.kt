@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -74,6 +75,9 @@ private fun ServiceCard(
 ) {
     val st by vm.state.collectAsState()
 
+    // ✅ IMPORTANT: alaina eto ivelan'ny onClick ny context (tsy ao anaty lambda)
+    val ctx = LocalContext.current
+
     Card {
         Column(
             Modifier.fillMaxWidth().padding(14.dp),
@@ -100,12 +104,14 @@ private fun ServiceCard(
             }
 
             val shareText = buildShareText(title, assignments, st.musicians)
-            OutlinedButton(onClick = {
-                val ctx = androidx.compose.ui.platform.LocalContext.current
-                val clip = ClipData.newPlainText("planning", shareText)
-                (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                    .setPrimaryClip(clip)
-            }) { Text("Adika ho WhatsApp") }
+
+            OutlinedButton(
+                onClick = {
+                    val clip = ClipData.newPlainText("planning", shareText)
+                    (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                        .setPrimaryClip(clip)
+                }
+            ) { Text("Adika ho WhatsApp") }
         }
     }
 }
