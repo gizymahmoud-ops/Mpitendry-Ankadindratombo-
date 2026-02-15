@@ -3,7 +3,7 @@ package dev.vmail.mpitendry.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -33,10 +33,14 @@ fun MainNav() {
 
                 NavigationBarItem(
                     selected = currentRoute == "planning",
-                    onClick = { navController.navigate("planning") },
+                    onClick = {
+                        navController.navigate("planning") {
+                            launchSingleTop = true
+                        }
+                    },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.DateRange,
+                            imageVector = Icons.Filled.DateRange,
                             contentDescription = "Planning"
                         )
                     },
@@ -45,10 +49,14 @@ fun MainNav() {
 
                 NavigationBarItem(
                     selected = currentRoute == "musicians",
-                    onClick = { navController.navigate("musicians") },
+                    onClick = {
+                        navController.navigate("musicians") {
+                            launchSingleTop = true
+                        }
+                    },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.People,
+                            imageVector = Icons.Filled.Person,
                             contentDescription = "Mpitendry"
                         )
                     },
@@ -57,10 +65,14 @@ fun MainNav() {
 
                 NavigationBarItem(
                     selected = currentRoute == "settings",
-                    onClick = { navController.navigate("settings") },
+                    onClick = {
+                        navController.navigate("settings") {
+                            launchSingleTop = true
+                        }
+                    },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.Settings,
+                            imageVector = Icons.Filled.Settings,
                             contentDescription = "Paramètres"
                         )
                     },
