@@ -16,7 +16,19 @@ android {
         versionName "1.0"
     }
 
-    buildFeatures { compose true }
+    // ✅ Fix: Java + Kotlin doivent utiliser la même version (17)
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildFeatures {
+        compose true
+    }
 
     composeOptions {
         kotlinCompilerExtensionVersion "1.5.14"
@@ -25,8 +37,6 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
-
-    kotlinOptions { jvmTarget = "17" }
 }
 
 dependencies {
