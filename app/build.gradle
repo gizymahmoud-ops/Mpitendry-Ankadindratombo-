@@ -16,6 +16,12 @@ android {
         versionName "1.0"
     }
 
+    // ✅ FORCE JAVA 17 (corrige compileDebugJavaWithJavac = 1.8)
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
     buildFeatures { compose true }
 
     composeOptions {
@@ -26,7 +32,10 @@ android {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
 
-    kotlinOptions { jvmTarget = "17" }
+    // ✅ FORCE KOTLIN 17
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 }
 
 dependencies {
@@ -36,7 +45,7 @@ dependencies {
     implementation "androidx.compose.material3:material3"
     implementation "androidx.activity:activity-compose:1.9.0"
 
-    // ✅ IMPORTANT: Icons
+    // ✅ ICONS (pour éviter les erreurs People/etc)
     implementation "androidx.compose.material:material-icons-core"
     implementation "androidx.compose.material:material-icons-extended"
 
