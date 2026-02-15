@@ -3,6 +3,7 @@ package dev.vmail.mpitendry.ui.screens
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,11 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -47,7 +45,9 @@ fun PlanningScreen() {
     val morningList by vm.morning.collectAsState()
     val eveningList by vm.evening.collectAsState()
 
-    LaunchedEffect(st.selectedDateIso) { vm.setDateIso(st.selectedDateIso) }
+    LaunchedEffect(Unit) {
+        vm.setDateIso(st.selectedDateIso)
+    }
 
     val morningMap = remember(morningList) {
         morningList.associate { Instrument.valueOf(it.instrument) to it.musicianId }
@@ -142,14 +142,14 @@ private fun ServiceCard(
             OutlinedButton(
                 onClick = {
                     val clip = ClipData.newPlainText("planning", shareText)
-                    (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(clip)
+                    (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                        .setPrimaryClip(clip)
                 }
             ) { Text("Adika ho WhatsApp") }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AssignmentRow(
     instrument: String,
@@ -163,24 +163,22 @@ private fun AssignmentRow(
         var expanded by remember { mutableStateOf(false) }
         val selectedName = musicians.firstOrNull { it.id == selectedId }?.name ?: "Safidio…"
 
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+
             OutlinedTextField(
                 value = selectedName,
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Mpitendry") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier
-                    .menuAnchor()
                     .fillMaxWidth()
+                    .clickable { expanded = true }
             )
 
-            ExposedDropdownMenu(
+            DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.fillMaxWidth()
             ) {
                 musicians.forEach { m ->
                     DropdownMenuItem(
