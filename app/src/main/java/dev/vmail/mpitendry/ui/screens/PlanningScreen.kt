@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
@@ -18,11 +17,11 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,12 +40,14 @@ import dev.vmail.mpitendry.data.ServiceSlot
 import dev.vmail.mpitendry.ui.AppVm
 
 @Composable
-fun PlanningScreen(vm: AppVm = viewModel()) {
+fun PlanningScreen() {
+
+    val vm: AppVm = viewModel()
     val st by vm.state.collectAsState()
     val morningList by vm.morning.collectAsState()
     val eveningList by vm.evening.collectAsState()
 
-    LaunchedEffect(Unit) { vm.setDateIso(st.selectedDateIso) }
+    LaunchedEffect(st.selectedDateIso) { vm.setDateIso(st.selectedDateIso) }
 
     val morningMap = remember(morningList) {
         morningList.associate { Instrument.valueOf(it.instrument) to it.musicianId }
