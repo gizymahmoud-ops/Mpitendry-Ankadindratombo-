@@ -4,19 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -33,14 +22,13 @@ import java.net.URL
 import java.nio.charset.Charset
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(vm: AppVm = viewModel()) {
 
-    val vm: AppVm = viewModel()
     val st by vm.state.collectAsState()
     val scope = rememberCoroutineScope()
 
-    var url by remember {
-        mutableStateOf("https://raw.githubusercontent.com/TON_COMPTE/TON_REPO/main/planning.json")
+    var urlInput by remember {
+        mutableStateOf("https://raw.githubusercontent.com/gizymahmoud-ops/Mpitendry-Ankadindratombo-/main/planning.json")
     }
 
     var status by remember { mutableStateOf("Tsy mbola nanao mise à jour.") }
@@ -53,11 +41,11 @@ fun SettingsScreen() {
         Text("Paramètres", style = MaterialTheme.typography.titleLarge)
 
         OutlinedTextField(
-            value = url,
-            onValueChange = { url = it.trim() },
+            value = urlInput,
+            onValueChange = { urlInput = it },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            label = { Text("Lien planning.json") }
+            label = { Text("Lien planning.json (GitHub ou RAW)") }
         )
 
         Button(
@@ -65,16 +53,19 @@ fun SettingsScreen() {
             enabled = !loading,
             onClick = {
                 loading = true
-                status = "Téléchargement..."
+                status = "Préparation du lien..."
 
                 scope.launch {
                     try {
-                        val jsonText = withContext(Dispatchers.IO) { downloadText(url) }
+                        val normalized = normalizeGithubUrl(urlInput)
+                        status = "Téléchargement...\n$normalized"
+
+                        val jsonText = withContext(Dispatchers.IO) { downloadText(normalized) }
                         val result = applyPlanningJson(vm, st.musicians, jsonText)
 
                         status = buildString {
-                            append("✅ Mise à jour OK. ")
-                            append("Dates: ${result.updatedDates}. ")
+                            append("✅ Mise à jour OK.\n")
+                            append("Dates: ${result.updatedDates}\n")
                             if (result.missingNames.isNotEmpty()) {
                                 append("⚠️ Tsy hita: ${result.missingNames.joinToString(", ")}")
                             }
@@ -97,6 +88,41 @@ fun SettingsScreen() {
         Text("Créer par : Iantsa")
         Text("Contact : 0387290972")
     }
+}
+
+/**
+ * ✅ Accepte:
+ * - https://github.com/.../blob/main/planning.json
+ * - https://raw.githubusercontent.com/.../main/planning.json
+ * - https://raw.githubusercontent.com/.../refs/heads/main/planning.json
+ * - github.com/... (sans https)
+ * - raw.githubusercontent.com/... (sans https)
+ *
+ * Et retourne toujours un vrai lien RAW téléchargeable.
+ */
+private fun normalizeGithubUrl(input: String): String {
+    var s = input.trim()
+
+    // enlève guillemets si l'utilisateur colle "..."
+    s = s.removePrefix("\"").removeSuffix("\"").trim()
+
+    // si l'utilisateur colle sans https
+    if (s.startsWith("github.com/")) s = "https://$s"
+    if (s.startsWith("raw.githubusercontent.com/")) s = "https://$s"
+    if (!s.startsWith("http://") && !s.startsWith("https://")) {
+        s = "https://$s"
+    }
+
+    // Convertit github blob -> raw
+    if (s.contains("github.com/") && s.contains("/blob/")) {
+        s = s.replace("https://github.com/", "https://raw.githubusercontent.com/")
+        s = s.replace("/blob/", "/")
+    }
+
+    // Corrige raw avec refs/heads
+    s = s.replace("/refs/heads/", "/")
+
+    return s
 }
 
 private data class ApplyResult(
@@ -125,8 +151,7 @@ private suspend fun applyPlanningJson(
         val item = plans.getJSONObject(i)
 
         val dateIso = item.getString("dateIso")
-        val slotStr = item.getString("slot")
-        val slot = ServiceSlot.valueOf(slotStr)
+        val slot = ServiceSlot.valueOf(item.getString("slot"))
 
         vm.setDateIso(dateIso)
         delay(10)
@@ -154,7 +179,7 @@ private suspend fun applyPlanningJson(
         updatedDates += 1
     }
 
-    return ApplyResult(updatedDates, missing.toList())
+    return ApplyResult(updatedDates = updatedDates, missingNames = missing.toList())
 }
 
 private fun downloadText(url: String): String {
@@ -164,9 +189,11 @@ private fun downloadText(url: String): String {
         requestMethod = "GET"
     }
     conn.connect()
+
     if (conn.responseCode !in 200..299) {
         throw IllegalStateException("HTTP ${conn.responseCode}")
     }
+
     val bytes = conn.inputStream.use { it.readBytes() }
     return bytes.toString(Charset.forName("UTF-8"))
 }
